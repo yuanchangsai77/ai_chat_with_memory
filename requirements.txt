@@ -1,0 +1,14 @@
+gtts
+librosa
+pyttsx3
+sounddevice
+soundfile
+transformers>=4.27.1
+sentence_transformers
+unstructured[local-inference]
+langchain>=0.0.163
+openai>=0.27.6
+faiss-cpu
+nltk
+textdistance
+gradio>=0.35.2
