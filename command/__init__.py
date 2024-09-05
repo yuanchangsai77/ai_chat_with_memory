@@ -1,4 +1,4 @@
-import configparser
+import configparser# 配置解析器
 import os
 
 from tools.generator import DialogEventGenerator
@@ -6,7 +6,7 @@ from tools.utils import load_txt_to_str, append_to_str_file, load_last_n_lines, 
 
 command_config = configparser.ConfigParser()
 command_config.read('command/command.ini', encoding='utf-8-sig')
-command_start = command_config.get('START', 'command_start')
+command_start = command_config.get('START', 'command_start')# 获取指令开始符
 
 
 # 指令执行记号，是一个全局变量，用于作用到整个系统
@@ -36,9 +36,8 @@ class CommandFlags:
         self.user_name = ''
         self.ai_name = ''
 
-
+# 全局信息输出池，主要服务于ui界面
 class DebugMessagePool:
-    # 全局信息输出池，主要服务于ui界面
     string = ''
 
     def append_msg(self, msg):
@@ -58,9 +57,8 @@ command_flags = CommandFlags()
 command_flags.reset()
 debug_msg_pool = DebugMessagePool()
 
-
+# 指令检查池
 class Pool:
-
     def check(self, command: str, ai_name):
         """
         :param ai_name: 执行指令时要回答的ai
@@ -71,13 +69,13 @@ class Pool:
             return ''
         command_flags.not_command = False
         if len(command) == 1:
-            print("（您输入了空指令，输入'" + command_start + "help'来获取帮助。'）")
-            debug_msg_pool.append_msg("（您输入了空指令，输入'" + command_start + "help'来获取帮助。'）")
+            print("(您输入了空指令，输入'" + command_start + "help'来获取帮助。)")
+            debug_msg_pool.append_msg("(您输入了空指令，输入'" + command_start + "help'来获取帮助。)")
             command_flags.wrong_command = True
             return 'wrong command'
         if command[1:] not in command_config['LIST'].values():
-            print("（指令不存在，输入'" + command_start + "help'来获取帮助。'）")
-            debug_msg_pool.append_msg("（指令不存在，输入'" + command_start + "help'来获取帮助。'）")
+            print("(指令不存在，输入'" + command_start + "help'来获取帮助。)")
+            debug_msg_pool.append_msg("(指令不存在，输入'" + command_start + "help'来获取帮助。)")
             command_flags.wrong_command = True
             return 'wrong command'
 
@@ -136,12 +134,12 @@ class Pool:
             command_flags.show_prompt = True
             return 'show_prompt'
         else:
-            print("（指令不存在，输入'" + command_start + "help'来获取帮助。'）")
-            debug_msg_pool.append_msg("（指令不存在，输入'" + command_start + "help'来获取帮助。'）")
+            print("(指令不存在，输入'" + command_start + "help'来获取帮助。)")
+            debug_msg_pool.append_msg("(指令不存在，输入'" + command_start + "help'来获取帮助。)")
             command_flags.wrong_command = True
         return 'no process'
 
-
+# 打开文件指令
 def open_command(agent):
     if command_flags.history:
         path = agent.info.history_path
@@ -162,7 +160,7 @@ def open_command(agent):
         print("文件未能成功打开。")
         debug_msg_pool.append_msg("文件未能成功打开。")
 
-
+# 展示指令
 def show_command(agent):
     if command_flags.show_temp_history:
         # 展示当前临时历史窗口
@@ -187,7 +185,7 @@ def show_command(agent):
         print(agent.event_text)
         debug_msg_pool.append_msg("事件记忆：" + '\n' + agent.event_text)
 
-
+# 指令执行函数
 def execute_command(agent):
     if command_flags.open:
         open_command(agent)
@@ -231,7 +229,7 @@ def execute_command(agent):
         return 'ai_chat_with_memory sys:执行了指令'
     return ''
 
-
+# 清理指令
 def command_cleanup_task(agent):
     if command_flags.ai_name != agent.ai_name:
         return

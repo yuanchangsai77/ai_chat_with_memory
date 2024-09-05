@@ -1,22 +1,22 @@
-import copy
-import os
-import random
-import threading
-import time
-import openai
+import copy# 深拷贝
+import os# 操作系统
+import random# 随机数
+import threading# 线程
+import time# 时间
+import openai# openai
 
-from tools.audio import AudioModule
-from tools.store import SimpleStoreTool, VectorStoreTool
-from tools.text import high_word_similarity_text_filter
-from tools.utils import load_txt_to_lst, load_last_n_lines, append_to_str_file, openai_moderation, CharacterInfo
-from command import debug_msg_pool
-from config import DevConfig
+from tools.audio import AudioModule# 音频模块
+from tools.store import SimpleStoreTool, VectorStoreTool# 存储模块
+from tools.text import high_word_similarity_text_filter# 文本过滤
+from tools.utils import load_txt_to_lst, load_last_n_lines, append_to_str_file, openai_moderation, CharacterInfo# 工具函数
+from command import debug_msg_pool# 调试信息池
+from config import DevConfig# 配置
 
-
+# 收集上下文
 def collect_context(text_lst):
-    return "\n".join([text for text in text_lst])
+    return "\n".join([text for text in text_lst])# 使用换行符连接列表中的所有文本
 
-
+# 主代理类
 class MainAgent:
 
     def __init__(self,
@@ -37,14 +37,14 @@ class MainAgent:
         self.world_name = world_name
         self.ai_name = ai_name
         self.user_name = self.base_config.user_name
-        self.info = CharacterInfo(self.world_name, self.ai_name)
+        self.info = CharacterInfo(self.world_name, self.ai_name)#在utils.py中定义
         # ---
 
         # ------高级开发参数
-        self.dev_config = DevConfig()
+        self.dev_config = DevConfig()#在config.py中定义
         # ------
 
-        # ---暂存区
+        # ---暂存区，有查询，实体，对话，事件，最后答案，步长
         self.query = ''
         self.entity_text = ''
         self.dialog_text = ''
@@ -53,12 +53,13 @@ class MainAgent:
         self.step = 1
         # ---
 
+        # 嵌入模型
         self.embeddings = embed_model
         if self.embeddings is None:
             self.use_embed_model = False
         else:
             self.use_embed_model = True
-        # store
+        # 存储工具
         self.store_tool = self.load_store_tool()
         self.entity_store = self.store_tool.load_entity_store()
         self.history_store = self.store_tool.load_history_store()
@@ -92,6 +93,7 @@ class MainAgent:
         print("【---" + self.ai_name + "声音模块加载完成---】")
         # ---
 
+    # 设置身份
     def set_identity(self, world_name, ai_name, user_name):
         self.world_name = world_name
         self.ai_name = ai_name
@@ -99,6 +101,7 @@ class MainAgent:
         self.info = CharacterInfo(self.world_name, self.ai_name)
         self.reset_history(self.info)
 
+    # 重置历史
     def reset_history(self, info):
         # 历史对话列表
         self.history = []
@@ -123,9 +126,11 @@ class MainAgent:
         # 声音模块
         self.set_audio_module()
 
+    # 重新加载开发配置
     def reload_dev_config(self):
         self.dev_config = DevConfig()
 
+    # 设置声音模块
     def set_audio_module(self):
         # ---声音模块
         speak_rate = self.base_config.speak_rate
@@ -140,6 +145,7 @@ class MainAgent:
         # ---
         self.voice_module = AudioModule(sound_library='local', rate=rate)
 
+    # 加载存储工具
     def load_store_tool(self):
         if self.use_embed_model:
             # 向量存储
@@ -155,15 +161,19 @@ class MainAgent:
                                    self.base_config.history_top_k,
                                    self.base_config.event_top_k)
 
+    # 获取临时查询
     def get_tmp_query(self):
         return self.query
 
+    # 获取最后答案
     def get_last_ans(self):
         return self.last_ans
 
+    # 设置用户名
     def set_user_name(self, user_name):
         self.user_name = user_name
 
+    # 聊天
     def chat(self, query):
         # 文本中加入提问者身份
         q_start = self.user_name + "说：" if self.user_name != '' else ''
@@ -259,11 +269,13 @@ class MainAgent:
         self.query = query
         return ans
 
+    # 计算token大小
     def calc_token_size(self):
         self.total_token_size = 0
         for dialog in self.history:
             self.total_token_size += (len(dialog[0]) + len(dialog[1]))
 
+    # 获取上下文窗口
     def get_context_window(self, query):
         lines = load_last_n_lines(self.info.history_path, self.dev_config.similarity_comparison_context_window - 1)
         comparison_string = ' '.join(line for line in lines)
@@ -288,6 +300,7 @@ class MainAgent:
                     print(dialog[1])
                     debug_msg_pool.append_msg(dialog[0] + ' ' + dialog[1])
 
+    # 加载历史记录
     def load_history(self, basic_history):
         self.basic_history = basic_history
         if os.path.exists(self.info.history_path) and os.path.getsize(self.info.history_path) == 0:
@@ -309,6 +322,7 @@ class MainAgent:
                 self.history.append(tuple_result)
         self.history_store = self.store_tool.load_history_store()
 
+    # 嵌入上下文
     def embedding_context(self, entity, dialog, event):
 
         entity = entity.replace("{{{AI_NAME}}}", self.ai_name)
@@ -345,6 +359,7 @@ class MainAgent:
             debug_msg_pool.append_msg(event)
         return context_len
 
+    # 获取相关记忆
     def get_related(self, query):
 
         entity_mem = self.store_tool.get_entity_mem(query, self.entity_store)
@@ -380,7 +395,7 @@ class MainAgent:
 
         event_mem = high_word_similarity_text_filter(self, event_mem)
 
-        # 随机打乱列表
+        # 随机打乱列表，shuffle是随机打乱列表的函数
         random.shuffle(entity_mem)
         random.shuffle(dialog_mem)
         random.shuffle(event_mem)

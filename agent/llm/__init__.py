@@ -1,30 +1,31 @@
 import openai
-from abc import abstractmethod
+from abc import abstractmethod# 抽象方法
 
 import torch
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel# 自动编码器和模型
 
-
+# 基础LLM类
 class BaseLLM:
     max_token: int = 10000
-    temperature: float = 0.01
-    top_p = 0.9
+    temperature: float = 0.01# 整体的概率分布，控制生成文本的随机性，越低越保守
+    top_p = 0.9 #top_p，核采样，表示模型会考虑累积概率达到 90% 的词汇选项,直接截断低概率，越高越随机
     model_name = ""
 
     def chat(self,
              query: str,
              history: list) -> str:
         return self.get_response(query, history)
-
+    # 获取响应
     @abstractmethod
     def get_response(self, query, history):
         return " "
-
+    # 设置参数
     @abstractmethod
     def set_para(self, **kwargs):
         pass
 
 
+# GPT-3.5模型
 class GPT3_5LLM(BaseLLM):
     temperature = 0.1,
     max_token = 1000,
@@ -92,7 +93,7 @@ class GPT3_5LLM(BaseLLM):
         else:
             return self.send(massages)
 
-
+# ChatGLM模型
 class ChatGLMLLM(BaseLLM):
     tokenizer: object = None
     model: object = None
