@@ -3,6 +3,7 @@ from abc import abstractmethod# 抽象方法
 
 import torch
 from transformers import AutoTokenizer, AutoModel# 自动编码器和模型
+import google.generativeai as genai
 
 # 基础LLM类
 class BaseLLM:
@@ -177,3 +178,58 @@ class ChatGLMLLM(BaseLLM):
         else:
             self.model = AutoModel.from_pretrained(self.model_name, trust_remote_code=True).float()
         self.model = self.model.eval()
+
+# Gemini模型
+class GeminiLLM(BaseLLM):
+    model: object = None
+    model_name = 'gemini-pro'
+    temperature = 0.1
+    max_token = 1000
+    streaming = False
+
+    def __init__(self, temperature=0.1, max_token=1000, model_name='gemini-pro', streaming=False):
+        self.set_para(temperature, max_token, model_name, streaming)
+        self.load_model()
+
+    def set_para(self, temperature, max_token, model_name, streaming):
+        self.model_name = model_name
+        self.temperature = temperature
+        self.max_token = max_token
+        self.streaming = streaming
+
+    def send(self, query, history):
+        messages = self.create_messages(query, history)
+        response = self.model.generate_content(messages)
+        return response.text
+
+    def send_stream(self, query, history):
+        messages = self.create_messages(query, history)
+        response = self.model.generate_content(messages, stream=True)
+        for chunk in response:
+            yield chunk.text
+
+    @staticmethod
+    def create_messages(query, history):
+        messages = []
+        for dialog in history:
+            messages.append({"role": "user", "parts": [dialog[0]]})
+            messages.append({"role": "model", "parts": [dialog[1]]})
+        messages.append({"role": "user", "parts": [query]})
+        return messages
+
+    def get_response(self, query, history):
+        if self.streaming:
+            return self.send_stream(query, history)
+        else:
+            return self.send(query, history)
+
+    def load_model(self, **kwargs):
+        try:
+            from config_local import GOOGLE_API_KEY
+        except ImportError:
+            try:
+                from config_example import GOOGLE_API_KEY
+            except ImportError:
+                raise ValueError("API key not found.")
+        genai.configure(api_key=GOOGLE_API_KEY,transport='rest')  # 替换为您的Gemini API密钥
+        self.model = genai.GenerativeModel(self.model_name)

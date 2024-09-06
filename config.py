@@ -9,6 +9,7 @@ model_map = {
     'chatglm2-6b-int4': 'ChatGLMLLM',
     'gpt-3.5-turbo': 'GPT3_5LLM',
     'gpt-3.5-turbo-0613': 'GPT3_5LLM',
+    'gemini-pro': 'GeminiLLM'  # 新增Gemini模型映射
 }# 模型映射
 
 # 基础配置

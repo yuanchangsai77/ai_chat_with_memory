@@ -18,7 +18,6 @@ def collect_context(text_lst):
 
 # 主代理类
 class MainAgent:
-
     def __init__(self,
                  world_name,
                  ai_name,
@@ -282,6 +281,7 @@ class MainAgent:
         comparison_string += query
         return comparison_string
 
+    # 历史对话窗口控制
     def history_window_control(self, context_len):
         if self.total_token_size + context_len >= self.base_config.window_max_token:
             while self.total_token_size + context_len > \

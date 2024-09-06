@@ -1,3 +1,3 @@
 @echo off
-venv\Scripts\python.exe main_ui.py
+E:\apps\anaconda\envs\nlpenv\python.exe main_ui.py
 pause
