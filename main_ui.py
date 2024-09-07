@@ -63,7 +63,7 @@ class ui_surface:
     def get_response(self, chat_history):
         if self.query == '':#如果用户输入为空
             yield chat_history#返回聊天历史
-        chat_history[-1][1] = ''#将聊天历史的最后一个元素的第二个元素设置为空，最后一个元素是用户输入
+        chat_history[-1][1] = ''#将聊天历史的最后一个元素的第二个元素设置为空，最后一个元素是用户名称
 
         for chunk_ans in self.sandbox.chat(self.query):#遍历沙盒的聊天信息
             if chunk_ans is not None:#如果聊天信息不为空
@@ -130,7 +130,7 @@ class ui_surface:
                             history_file_btn = gr.Button("对话历史文件")
                             event_file_btn = gr.Button("事件文件")
 
-                if not self.valid_config:#如果身份信息无效
+                if not self.valid_config:#如果世界和AI不匹配
                     msg_init_value = '身份信息错误,请检查config并重启程序'
                 else:
                     msg_init_value = ''
@@ -149,7 +149,8 @@ class ui_surface:
                 user_msg.submit(fn=self.user_msg_process, inputs=[user_msg, chatbot],
                                 outputs=[user_msg, chatbot],
                                 queue=False,
-                                show_progress=True).then(
+                                show_progress=True
+                ).then(
                     fn=self.get_response,
                     inputs=chatbot,
                     outputs=chatbot
@@ -165,7 +166,8 @@ class ui_surface:
                 retry_btn.click(fn=self.retry_msg_process, inputs=[user_msg, chatbot],
                                 outputs=[user_msg, chatbot],
                                 queue=False,
-                                show_progress=True).then(
+                                show_progress=True
+                ).then(
                     fn=self.get_response_retry,
                     inputs=chatbot,
                     outputs=chatbot
@@ -188,7 +190,7 @@ class ui_surface:
                 entity_file_btn.click(fn=self.open_entity_file, inputs=debug_msg_box, outputs=debug_msg_box)
                 history_file_btn.click(fn=self.open_history_file, inputs=debug_msg_box, outputs=debug_msg_box)
                 event_file_btn.click(fn=self.open_event_file, inputs=debug_msg_box, outputs=debug_msg_box)
-                # 无效身份信息
+
                 # 如果身份信息无效，则将用户输入、重试按钮、历史对话按钮、提示词按钮、记忆检索按钮、清空按钮设置为不可交互
                 if not self.valid_config:
                     user_msg.interactive = False
@@ -342,6 +344,7 @@ class ui_surface:
 
         demo.queue()
         demo.launch()
+
     # 保存开发设置
     def save_dev_config(self, debug_mode,
                         answer_extract_enabled,

@@ -51,24 +51,27 @@ class GPT3_5LLM(BaseLLM):
         self.streaming = streaming
 
     def send(self, massages):
-        return openai.ChatCompletion.create(
+        client = openai.OpenAI()
+        response = client.chat.completions.create(
             model=self.model_name,
             messages=massages,
             temperature=self.temperature,
             max_tokens=self.max_token
-        ).choices[0].message.content
+        )
+        return response.choices[0].message.content
 
     def send_stream(self, massages):
-        for chunk in openai.ChatCompletion.create(
-                model=self.model_name,
-                messages=massages,
-                temperature=self.temperature,
-                max_tokens=self.max_token,
-                stream=True,
-        ):
-            res = chunk["choices"][0].get("delta", {}).get("content")
-            if res is not None:
-                yield res
+        client = openai.OpenAI()
+        stream = client.chat.completions.create(
+            model=self.model_name,
+            messages=massages,
+            temperature=self.temperature,
+            max_tokens=self.max_token,
+            stream=True
+        )
+        for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                yield chunk.choices[0].delta.content
 
     @staticmethod
     def create_massages(query, history):
@@ -231,5 +234,5 @@ class GeminiLLM(BaseLLM):
                 from config_example import GOOGLE_API_KEY
             except ImportError:
                 raise ValueError("API key not found.")
-        genai.configure(api_key=GOOGLE_API_KEY,transport='rest')  # 替换为您的Gemini API密钥
+        genai.configure(api_key=GOOGLE_API_KEY,transport='rest')
         self.model = genai.GenerativeModel(self.model_name)

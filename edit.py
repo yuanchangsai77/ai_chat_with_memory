@@ -58,7 +58,7 @@ if __name__ == '__main__':
         if option == '1':
             print("【---欢迎使用世界管理器---】")
             while True:
-                print("你想做什么？\n1.创建新世界；2.创建新人物；3.返回")
+                print("你想做什么?\n1.创建新世界;2.创建新人物;3.返回")
                 option2 = input()
                 if option2 == '1':
                     print("输入想创建的世界名称：", end=' ')
@@ -71,7 +71,7 @@ if __name__ == '__main__':
                         y = input()
                         use_template = (y == 'Y' or y == 'y')
                         manager.create_world(use_template)
-                        print("是否打开世界文件夹？y.打开 其他.不打开")
+                        print("是否打开世界文件夹?y.打开 其他.不打开")
                         y = input()
                         if y == 'Y' or y == 'y':
                             path = os.path.abspath('memory\\' + world_name)
@@ -92,7 +92,7 @@ if __name__ == '__main__':
                     identity_str = IDENTITY_TEMPLATE.replace("{{{AI_NAME}}}", ai_name)
                     info = CharacterInfo(world_name, ai_name)
                     if manager.create_character(info, prompt_str, identity_str):
-                        print("是否打开人物文件夹？y.打开 其他.不打开")
+                        print("是否打开人物文件夹?y.打开 其他.不打开")
                         y = input()
                         if y == 'Y' or y == 'y':
                             path = os.path.abspath(info.folder_path)

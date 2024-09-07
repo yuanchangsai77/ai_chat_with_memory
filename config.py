@@ -19,7 +19,10 @@ class BaseConfig:
         self.file = configparser.ConfigParser()# 配置文件
 
         self.file.read('config.ini', encoding='utf-8-sig')
-        openai.api_key = self.file.get('API', 'openai_api_key')
+        try:
+            openai.api_key = self.file.get('API', 'openai_api_key')
+        except:
+            pass
         # 身份
         self.ai_name = self.file['SINGLE_AI']['ai_name']
         self.world_name = self.file['SINGLE_AI']['world_name']
